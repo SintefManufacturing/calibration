@@ -4,10 +4,10 @@ Created on Dec 18, 2012
 @author: lars
 '''
 import os
+import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
-
 
 class State:
     PLANE1, PLANE2, PLANE3, LASERLINE = range(4)
@@ -123,6 +123,7 @@ class Calibrator(object):
     def _on_mouse(self, event, x, y, flags, param):
         x, y = np.int16([x, y])
         if event == cv2.EVENT_LBUTTONDOWN:
+            print("Got point. X: {} | Y: {}".format(x, y))
             ## click and fit ellipse
             temp = self._displayed_image.copy()
             ## convert image to greyscale
@@ -148,28 +149,38 @@ class Calibrator(object):
                     cv2.putText(temp, '{0}'.format(len(self._imgpts_row16)), 
                                 (x1,y1+win_size), cv2.FONT_HERSHEY_SIMPLEX,
                                 1, (255,0,255))
-
+                    if len(self._imgpts_row16) == 4:
+                        print('Right click please')
                 else:
-                    print('got all points in plane 1 and 5')
+                    print('got all points in plane 1 and 5, Right click please')
             elif self._state == State.PLANE2:
                 if len(self._imgpts_row25) < 4:  ## 4
                     self._imgpts_row25.append(center_subpix_fullframe)
                     cv2.putText(temp, '{0}'.format(len(self._imgpts_row25)), 
                                 (x1,y1+win_size), cv2.FONT_HERSHEY_SIMPLEX,
                                 1, (255,0,255))
+                    if len(self._imgpts_row25) == 4:
+                        print('Right click please')
                 else:
-                    print('got all points in plane 2 and 4')
+                    print('got all points in plane 2 and 4, Right click please')
             elif self._state == State.PLANE3:
                 if len(self._imgpts_row34) < 4:  ## 4  
                     self._imgpts_row34.append(center_subpix_fullframe)
                     cv2.putText(temp, '{0}'.format(len(self._imgpts_row34)), 
                                 (x1,y1+win_size), cv2.FONT_HERSHEY_SIMPLEX, 
                                 1, (255,0,255))
+                    if len(self._imgpts_row34) == 4:
+                        print('Right click please')
                 else:
-                    print('got all points in plane 3')
+                    print('got all points in plane 3, Right click please')
             elif self._state == State.LASERLINE:
                 if len(self._laserline_limits) < 10:
                     self._laserline_limits.append(x)
+                    print("Laser point appended")
+                    if len(self._laserline_limits) == 10:
+                        print('Right click please')
+                else:
+                    print('Got all the points, Right click please')
 
             
             self._displayed_image = temp
@@ -231,8 +242,8 @@ class Calibrator(object):
                 [perspective_transformed_laserline.append(self._perspective_transform(l, h)) for l, h in zip(undistorted_laserline, self._homography_matrices)]
                 ptp_laser = []
                 for h, l in zip(self._plane_heights, perspective_transformed_laserline):
-                        for i in range(len(l)):
-                            ptp_laser.append(np.append(l[i], h))
+                    for i in range(len(l)):
+                        ptp_laser.append(np.append(l[i], h))
                             
                 self._ptp_laserline_3d_in_object = np.array(ptp_laser, dtype=np.float32)
 #                print('Points in object')
@@ -249,9 +260,12 @@ class Calibrator(object):
                 print(self._mean)
                 self._save_calibration()
             
+                print("Calibration saved")
+                sys.exit(0)
             ## change _state
             if self._state is not State.LASERLINE:
                 self._state += 1
+                print("Changed state to: {}".format(self._state))
         
         elif event == cv2.EVENT_MBUTTONDOWN:
             # # Restart calibration procedure
@@ -366,11 +380,11 @@ class Calibrator(object):
         x0 = np.mean(x)
         y0 = np.mean(y)
         z0 = np.mean(z)
-        print('mean')
+        #print('mean')
         self._mean = np.array([x0, y0, z0])
         u,s,vh = np.linalg.linalg.svd(coords - self._mean)
         v = vh.conj().transpose()
-        print('Laser plane equation:')
+        #print('Laser plane equation:')
         self._laserplane_eq = v[:,-1]
         
     def _get_laserline_object_coords_in_camera(self, coords):
