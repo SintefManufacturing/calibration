@@ -311,8 +311,9 @@ class Restore(object):
     def save_point_cloud(scan, path='pc.ply'):
         #from IPython import embed
         #embed()
-        scan = scan[:,:,:3] # remove other data than position
-        scan.shape = (-1, 3)
+        if len(scan.shape) >= 3:
+            scan.shape = (-1, scan.shape[-1])
+        scan = scan[:,:3] # remove other data than position
         z = scan[:,2].clip(-1, 1) #clip values in Z
         y = scan[:,1].clip(-2, 2) #clip values in Z
         #y = scan[:,1]
