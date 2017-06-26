@@ -214,7 +214,7 @@ class Calibrator(object):
                                              
                 self._homography_matrices.append(self._homography_plane2)
                 self._homography_matrices.append(self._homography_plane1)
-                                             
+
                 ## Not necessary to undistort the points before solvePnP
                 ret, rvec, self._tvec = cv2.solvePnP(self._objpts_3d,
                                                      self._imgpts, 
@@ -231,11 +231,8 @@ class Calibrator(object):
             elif self._state == State.LASERLINE:
                 
                 ## slice laserline in planes
-                self._laserline_in_planes.append(self._laserline_2d[self._laserline_limits[0]:self._laserline_limits[1]])
-                self._laserline_in_planes.append(self._laserline_2d[self._laserline_limits[2]:self._laserline_limits[3]])
-                self._laserline_in_planes.append(self._laserline_2d[self._laserline_limits[4]:self._laserline_limits[5]])
-                self._laserline_in_planes.append(self._laserline_2d[self._laserline_limits[6]:self._laserline_limits[7]])
-                self._laserline_in_planes.append(self._laserline_2d[self._laserline_limits[8]:self._laserline_limits[9]])
+                for  lim in range(0, 5):
+                    self._laserline_in_planes.append([p for p in self._laserline_2d[self._laserline_limits[2*lim]:self._laserline_limits[2*lim+1]] if p[1]>0])
                 undistorted_laserline = []
                 [undistorted_laserline.append(self._undistort_points(l)[0]) for l in self._laserline_in_planes]
                 perspective_transformed_laserline = []
